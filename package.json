@@ -1,19 +1,13 @@
 {
   "name": "solarinvest-invoice-engine",
   "version": "1.0.0",
-  "main": "dist/electron-main.js",
+  "private": true,
   "scripts": {
-    "build": "tsc",
-    "dev": "ts-node src/cli/test-engine.ts",
-    "electron-dev": "npm run build && electron ."
+    "cli:test": "ts-node cli/test-engine.ts"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "ts-node": "^10.0.0",
-    "@types/node": "^20.0.0",
-    "@types/electron": "^1.6.10"
-  },
-  "dependencies": {
-    "electron": "^30.0.0"
+    "@types/node": "^20.12.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
   }
 }
