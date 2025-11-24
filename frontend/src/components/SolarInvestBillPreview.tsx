@@ -1,15 +1,17 @@
 import React from 'react';
+import QRCode from 'qrcode.react';
 import { useInvoiceStore } from '../store/invoiceStore';
 import { generateBillPdf } from '../api/client';
-import { formatCurrencyBR } from '../../backend/src/utils/brNumber';
+import { formatCurrencyBR } from '../utils/brNumber';
 
 export default function SolarInvestBillPreview(): JSX.Element {
   const billing = useInvoiceStore((s) => s.billingResult);
   const rawInvoice = useInvoiceStore((s) => s.rawInvoice);
+  const contrato = useInvoiceStore((s) => s.contractParams);
 
   const handleDownload = async () => {
     if (!billing) return;
-    const pdfBlob = await generateBillPdf(billing, rawInvoice || undefined);
+    const pdfBlob = await generateBillPdf(billing, rawInvoice || undefined, contrato || undefined);
     const url = URL.createObjectURL(pdfBlob);
     const a = document.createElement('a');
     a.href = url;
@@ -22,12 +24,17 @@ export default function SolarInvestBillPreview(): JSX.Element {
     return <p>Realize o cálculo primeiro.</p>;
   }
 
+  const qrValue = `SOLARINVEST|${billing.meta.idContrato}|${billing.totalAPagarRS}|${billing.meta.mesReferencia}`;
+
   return (
-    <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h3 style={{ margin: 0 }}>Fatura SolarInvest</h3>
           <p style={{ margin: 0, color: '#6b7280' }}>Contrato {billing.meta.idContrato}</p>
+          <p style={{ margin: 0, color: '#6b7280' }}>
+            {billing.meta.distribuidora} - {billing.meta.uf} · {billing.meta.mesReferencia}
+          </p>
         </div>
         <button
           onClick={handleDownload}
@@ -36,21 +43,17 @@ export default function SolarInvestBillPreview(): JSX.Element {
           Baixar PDF
         </button>
       </div>
-      <div style={{ background: '#f9fafb', padding: 12, borderRadius: 8 }}>
-        <p style={{ margin: 0 }}>Distribuidora: {billing.meta.distribuidora}</p>
-        <p style={{ margin: 0 }}>UF: {billing.meta.uf}</p>
-        <p style={{ margin: 0 }}>Mês referência: {billing.meta.mesReferencia}</p>
+
+      <div style={{ background: '#f9fafb', padding: 12, borderRadius: 8, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+        <Stat label="Energia contratada (Kc)" value={`${contrato?.kcEnergiaContratadaKWh ?? '-'} kWh`} />
+        <Stat label="Consumo real (Kr)" value={`${rawInvoice?.consumoKWh ?? '-'} kWh`} />
+        <Stat
+          label="Créditos"
+          value={`${(rawInvoice?.creditosAnterioresKWh || 0) + (rawInvoice?.creditosAtuaisKWh || 0)} kWh`}
+        />
+        <Stat label="Valor total" value={formatCurrencyBR(billing.totalAPagarRS)} large />
       </div>
-      <div style={{ display: 'flex', gap: 12 }}>
-        <div style={{ flex: 1 }}>
-          <p style={{ margin: 0, color: '#6b7280' }}>Valor a pagar</p>
-          <p style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>{formatCurrencyBR(billing.totalAPagarRS)}</p>
-        </div>
-        <div style={{ flex: 1 }}>
-          <p style={{ margin: 0, color: '#6b7280' }}>Resumo</p>
-          <p style={{ margin: 0 }}>{billing.resumoTextoExplicativo}</p>
-        </div>
-      </div>
+
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ textAlign: 'left', color: '#6b7280', fontSize: 12 }}>
@@ -69,6 +72,30 @@ export default function SolarInvestBillPreview(): JSX.Element {
           ))}
         </tbody>
       </table>
+
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: 240, border: '1px solid #e5e7eb', borderRadius: 8, padding: 12 }}>
+          <p style={{ marginTop: 0, color: '#6b7280' }}>QR Code para pagamento</p>
+          <QRCode value={qrValue} size={140} />
+          <p style={{ color: '#6b7280' }}>Use o app do seu banco para pagar.</p>
+        </div>
+        <div style={{ flex: 2, minWidth: 300, border: '1px solid #e5e7eb', borderRadius: 8, padding: 12 }}>
+          <p style={{ marginTop: 0, fontWeight: 700 }}>Explicação</p>
+          <p style={{ margin: 0, color: '#111827' }}>{billing.resumoTextoExplicativo}</p>
+          <div style={{ marginTop: 12, color: '#6b7280' }}>
+            Histórico mensal será exibido aqui em versões futuras.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, large }: { label: string; value: string; large?: boolean }) {
+  return (
+    <div>
+      <div style={{ color: '#6b7280', fontSize: 12 }}>{label}</div>
+      <div style={{ fontWeight: 800, fontSize: large ? 22 : 16 }}>{value}</div>
     </div>
   );
 }

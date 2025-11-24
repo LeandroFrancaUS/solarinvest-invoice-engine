@@ -10,8 +10,8 @@ const parseNumber = (value: string | undefined, fallback: number): number => {
 export const env = {
   port: parseNumber(process.env.PORT, 3001),
   ocr: {
-    url: process.env.OCR_API_URL || '',
-    apiKey: process.env.OCR_API_KEY || '',
+    url: process.env.OCR_API_URL || null,
+    apiKey: process.env.OCR_API_KEY || null,
     timeoutMs: parseNumber(process.env.OCR_API_TIMEOUT_MS, 30000),
   },
   defaults: {
@@ -21,3 +21,7 @@ export const env = {
 };
 
 export const isOcrConfigured = (): boolean => Boolean(env.ocr.url && env.ocr.apiKey);
+
+if (!isOcrConfigured()) {
+  console.warn('OCR externo não configurado — usando modo STUB');
+}

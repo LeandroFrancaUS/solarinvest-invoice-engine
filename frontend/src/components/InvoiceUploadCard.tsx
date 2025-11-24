@@ -6,17 +6,21 @@ import { useNavigate } from 'react-router-dom';
 export default function InvoiceUploadCard(): JSX.Element {
   const fileInput = useRef<HTMLInputElement | null>(null);
   const [status, setStatus] = useState<string>('');
-  const setRawInvoice = useInvoiceStore((s) => s.setRawInvoice);
+  const [isDragging, setIsDragging] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const setUploadResult = useInvoiceStore((s) => s.setUploadResult);
   const navigate = useNavigate();
 
   const handleSelect = () => fileInput.current?.click();
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    const file = files[0];
+    setSelectedFile(file);
     setStatus('Enviando para OCR...');
     try {
-      const { rawInvoice } = await uploadInvoice(files[0]);
-      setRawInvoice(rawInvoice);
+      const { rawInvoice, ocrPreview, fileName } = await uploadInvoice(file);
+      setUploadResult(rawInvoice, ocrPreview, fileName);
       setStatus('Dados extraídos com sucesso. Redirecionando...');
       navigate('/dados-extraidos');
     } catch (error: any) {
@@ -24,8 +28,29 @@ export default function InvoiceUploadCard(): JSX.Element {
     }
   };
 
+  const onDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+    handleFiles(event.dataTransfer.files);
+  };
+
   return (
-    <div style={{ border: '1px dashed #cbd5e1', padding: 24, borderRadius: 12, textAlign: 'center' }}>
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDragging(true);
+      }}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={onDrop}
+      style={{
+        border: '1px dashed #cbd5e1',
+        padding: 24,
+        borderRadius: 12,
+        textAlign: 'center',
+        background: isDragging ? '#ecfeff' : '#fff',
+        transition: 'background 0.2s ease',
+      }}
+    >
       <input
         type="file"
         accept="application/pdf,image/png,image/jpeg"
@@ -40,6 +65,9 @@ export default function InvoiceUploadCard(): JSX.Element {
       >
         Selecionar arquivo
       </button>
+      {selectedFile && (
+        <p style={{ marginTop: 12, color: '#0f172a' }}>Arquivo: {selectedFile.name}</p>
+      )}
       {status && <p style={{ marginTop: 12, color: '#6b7280' }}>{status}</p>}
     </div>
   );

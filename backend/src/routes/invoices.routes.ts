@@ -26,6 +26,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     return res.json({
       rawInvoice: parsed,
       ocrPreview: ocrText.slice(0, 500),
+      fileName: req.file.originalname,
     });
   } catch (error: any) {
     console.error('Erro no upload de fatura', error);
@@ -39,6 +40,9 @@ router.post('/calculate', (req, res) => {
     if (!rawInvoice || !contrato) {
       return res.status(400).json({ error: 'rawInvoice e contrato são obrigatórios' });
     }
+    if (contrato.kcEnergiaContratadaKWh <= 0) {
+      return res.status(400).json({ error: 'kcEnergiaContratadaKWh deve ser maior que zero' });
+    }
     const result = calcularFaturaSolarInvest({ rawInvoice, contrato });
     return res.json(result);
   } catch (error: any) {
@@ -49,11 +53,15 @@ router.post('/calculate', (req, res) => {
 
 router.post('/generate-bill-pdf', (req, res) => {
   try {
-    const { billingResult, rawInvoice } = req.body as { billingResult: BillingResult; rawInvoice?: RawInvoiceData; contrato?: ContractParams };
+    const { billingResult, rawInvoice, contrato } = req.body as {
+      billingResult: BillingResult;
+      rawInvoice?: RawInvoiceData;
+      contrato?: ContractParams;
+    };
     if (!billingResult) {
       return res.status(400).json({ error: 'billingResult é obrigatório' });
     }
-    const pdfBuffer = gerarPdfFatura(billingResult, rawInvoice);
+    const pdfBuffer = gerarPdfFatura(billingResult, rawInvoice, contrato);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="fatura-solarinvest.pdf"');
     return res.send(pdfBuffer);
