@@ -1,9 +1,9 @@
-import express from 'express';
+import { Router } from "express";
 
-const router = express.Router();
+const router = Router();
 
-router.get('/', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), version: 'invoice-engine-v1' });
+router.get("/", (req, res) => {
+  res.json({ status: "ok" });
 });
 
 export default router;
