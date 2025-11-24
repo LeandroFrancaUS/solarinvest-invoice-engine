@@ -4,6 +4,7 @@ import DashboardHome from '../pages/DashboardHome';
 import UploadInvoicePage from '../pages/UploadInvoicePage';
 import ExtractPreviewPage from '../pages/ExtractPreviewPage';
 import InterpretationPage from '../pages/InterpretationPage';
+import CalculationPage from '../pages/CalculationPage';
 import SolarInvestBillPage from '../pages/SolarInvestBillPage';
 
 const router = createBrowserRouter([
@@ -15,6 +16,7 @@ const router = createBrowserRouter([
       { path: 'upload', element: <UploadInvoicePage /> },
       { path: 'dados-extraidos', element: <ExtractPreviewPage /> },
       { path: 'interpretacao', element: <InterpretationPage /> },
+      { path: 'calculo', element: <CalculationPage /> },
       { path: 'fatura-solarinvest', element: <SolarInvestBillPage /> },
     ],
   },

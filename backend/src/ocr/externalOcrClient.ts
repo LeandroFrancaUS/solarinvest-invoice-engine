@@ -4,15 +4,17 @@ import { env, isOcrConfigured } from '../config/env';
 
 export async function runExternalOcr(fileBuffer: Buffer, fileName: string, mimeType: string): Promise<string> {
   if (!isOcrConfigured()) {
-    console.warn('OCR externo não configurado — retornando texto simulado para desenvolvimento');
-    return `DISTRIBUIDORA: EQUATORIAL GO\nUF: GO\nMES REFERENCIA: 01/2024\nCONSUMO: 2300 kWh\nENERGIA COMPENSADA: 400 kWh\nTARIFA CHEIA: 1,10\nTARIFA PISO: 0,88\nCIP: 24,50\nBANDEIRA: 18,00\nOUTROS: 5,00`;
+    console.warn('[OCR] Modo STUB ativo — retornando texto simulado');
+    const sanitized = fileName.toUpperCase();
+    const consumo = sanitized.includes('ALTA') ? 850 : sanitized.includes('MEDIA') ? 450 : 320;
+    return `DISTRIBUIDORA: EQUATORIAL GO\nUF: GO\nMES REFERENCIA: 01/2024\nCONSUMO: ${consumo} kWh\nCREDITOS: 120 kWh\nTARIFA: 0,95 R$/kWh\nCIP: 12,90\nBANDEIRA: 8,50\nOUTROS: 4,10\n`; 
   }
 
   const formData = new FormData();
   formData.append('file', fileBuffer, { filename: fileName, contentType: mimeType });
 
   try {
-    const response = await axios.post(env.ocr.url, formData, {
+    const response = await axios.post(env.ocr.url as string, formData, {
       headers: {
         ...formData.getHeaders(),
         Authorization: `Bearer ${env.ocr.apiKey}`,

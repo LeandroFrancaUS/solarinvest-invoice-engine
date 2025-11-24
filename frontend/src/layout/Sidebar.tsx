@@ -7,7 +7,8 @@ const links = [
   { to: '/', label: 'Visão Geral', icon: <Home size={18} /> },
   { to: '/upload', label: 'Upload de Faturas', icon: <Upload size={18} /> },
   { to: '/dados-extraidos', label: 'Dados Extraídos', icon: <FileText size={18} /> },
-  { to: '/interpretacao', label: 'Cálculo SolarInvest', icon: <Calculator size={18} /> },
+  { to: '/interpretacao', label: 'Interpretação', icon: <FileText size={18} /> },
+  { to: '/calculo', label: 'Cálculo SolarInvest', icon: <Calculator size={18} /> },
   { to: '/fatura-solarinvest', label: 'Fatura SolarInvest', icon: <Receipt size={18} /> },
 ];
 
